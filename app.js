@@ -34,19 +34,10 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Database
-(async () => {
-    try {
-      const db = await mongoose.connect(process.env.MONGODB_URI, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-        useFindAndModify: false,
-        useCreateIndex: true,
-      });
-      console.log("Mongodb is connected to", db.connection.host);
-    } catch (error) {
-      console.error(error);
-    }
-  })();
+mongoose
+     .connect( process.env.MONGODB_URI, { useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true, useFindAndModify: false, })
+     .then(() => console.log( 'Database Connected' ))
+     .catch(err => console.log( err ));
 
 const userSchema = new mongoose.Schema({
     email: {type: String},
