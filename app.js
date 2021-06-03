@@ -8,28 +8,45 @@ const passport = require("passport");
 const passportLocalMongoose = require("passport-local-mongoose");
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const findOrCreate = require("mongoose-findorcreate");
+const MongoStore = require("connect-mongo");
 
 // Initialization
 const app = express();
 
 // Settings
-app.use(express.static("public"));
 app.set('view engine', 'ejs');
 app.use(express.json());
-app.use(express.urlencoded({extended:false}));
+app.use(express.urlencoded({extended: true}));
+app.use(express.static("public"));
 
 // Middlewares
 app.use(session({
     secret: "This is a long little secret.",
     resave: false,
-    saveUninitialized: false
+    saveUninitialized: false,
+    store: MongoStore.create({ 
+      mongoUrl: process.env.MONGODB_URI,
+      touchAfter: 24 * 3600 
+    })
 }));
 
 app.use(passport.initialize());
 app.use(passport.session());
 
 // Database
-mongoose.connect(`mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.dgjcg.mongodb.net/userDB`, {useNewUrlParser: true, useUnifiedTopology: true});
+(async () => {
+    try {
+      const db = await mongoose.connect(process.env.MONGODB_URI, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        useFindAndModify: false,
+        useCreateIndex: true,
+      });
+      console.log("Mongodb is connected to", db.connection.host);
+    } catch (error) {
+      console.error(error);
+    }
+  })();
 mongoose.set("useCreateIndex", true);
 
 const userSchema = new mongoose.Schema({
