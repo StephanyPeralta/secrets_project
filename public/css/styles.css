@@ -1,0 +1,30 @@
+
+body {
+  background-color: #E8ECEF;
+}
+
+i {
+  color: #EBD82F;
+}
+
+.centered {
+    padding-top: 200px;
+    text-align: center;
+}
+
+.secret-text {
+  text-align: center;
+  border-radius: 5px;
+  font-size: 2rem;
+  color: #fff;
+  background-color: #282929;
+}
+
+.mainContainer {
+  height: 100vh;
+}
+
+.jumbotron {
+  background-color: transparent;
+}
+
