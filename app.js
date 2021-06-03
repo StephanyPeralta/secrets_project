@@ -47,7 +47,6 @@ app.use(passport.session());
       console.error(error);
     }
   })();
-mongoose.set("useCreateIndex", true);
 
 const userSchema = new mongoose.Schema({
     email: {type: String},
@@ -68,16 +67,16 @@ passport.serializeUser(function(user, done) {
     done(null, user.id);
   });
   
-  passport.deserializeUser(function(id, done) {
+passport.deserializeUser(function(id, done) {
     User.findById(id, function(err, user) {
       done(err, user);
     });
-  });
+});
 
 passport.use(new GoogleStrategy({
     clientID: process.env.CLIENT_ID,
     clientSecret: process.env.CLIENT_SECRET,
-    callbackURL: "http://localhost:3000/auth/google/secrets",
+    callbackURL: `${process.env.LOCAL_HOST || process.env.HOST}/auth/google/secrets`,
     userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo"
   },
   function(accessToken, refreshToken, profile, cb) {
