@@ -34,10 +34,19 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Database
-mongoose
-     .connect( process.env.MONGODB_URI, { useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true, useFindAndModify: false, })
-     .then(() => console.log( 'Database Connected' ))
-     .catch(err => console.log( err ));
+(async () => {
+    try {
+      const db = await mongoose.connect(process.env.MONGODB_URI, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        useFindAndModify: false,
+        useCreateIndex: true,
+      });
+      console.log("Mongodb is connected to", db.connection.host);
+    } catch (error) {
+      console.error(error);
+    }
+})();
 
 const userSchema = new mongoose.Schema({
     email: {type: String},
@@ -182,10 +191,7 @@ app.post("/login", function(req, res){
 });
 
 // Server status
-let port = process.env.PORT;
-if (port == null || port == "") {
-  port = 3000;
-}
-app.listen(port, function() {
-  console.log("Server has started successfully.");
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server started, app is running on port ${ PORT }`);
 });
