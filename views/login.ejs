@@ -5,6 +5,10 @@
   <%- include('partials/navbar') %>
 
   <div class="container mt-5">
+
+    <!-- ERROR & SUCCESS MESSAGES -->
+    <%- include('partials/messages') %>
+    
     <h1>Login</h1>
 
     <div class="row">
@@ -22,7 +26,7 @@
                 <label for="password">Password</label>
                 <input type="password" class="form-control" name="password">
               </div>
-              <button type="submit" class="btn btn-dark">Login</button>
+              <button type="submit" class="btn btn-dark" id="loginBtn">Login</button>
             </form>
 
           </div>

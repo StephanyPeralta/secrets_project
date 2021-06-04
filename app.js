@@ -4,6 +4,7 @@ const express = require("express");
 const ejs = require("ejs");
 const mongoose = require("mongoose");
 const session = require('express-session');
+const flash = require("connect-flash");
 const passport = require("passport");
 const passportLocalMongoose = require("passport-local-mongoose");
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
@@ -53,7 +54,7 @@ const userSchema = new mongoose.Schema({
     password: {type: String},
     googleId: {type: String},
     secret: [{type: String}]
-});
+},  { timestamps: true });
 
 // Passport Config
 userSchema.plugin(passportLocalMongoose);
@@ -86,6 +87,16 @@ passport.use(new GoogleStrategy({
   }
 ));
 
+app.use(flash());
+
+// Global Variables
+app.use((req, res, next) => {
+    res.locals.success_msg = req.flash("success_msg");
+    res.locals.error_msg = req.flash("error_msg");
+    res.locals.error = req.flash("error");
+    next();
+  });
+
 // Routes
 app.get("/", function(req, res){
     res.render("home");
@@ -99,7 +110,7 @@ app.get("/auth/google/secrets",
   passport.authenticate('google', { failureRedirect: "/login "}),
   function(req, res) {
     // Successful authentication, redirect to secrets.
-    res.redirect("/secrets");
+    return res.redirect("/secrets");
   });
 
 app.get("/login", function(req, res){
@@ -110,19 +121,18 @@ app.get("/register", function(req, res){
     res.render("register");
 });
 
-app.get("/secrets", function(req, res){
-    if (req.isAuthenticated()) {
-        User.find({"secret": {$ne: null}}, function(err, foundUsers){
-            if (err){
-                console.log(err);
-            } else {
-                if (foundUsers) {
-                    res.render("secrets", {usersWithSecrets: foundUsers});
-                }
-            }
-        });
-    } else {
-        res.redirect("/login");
+app.get("/secrets", async (req, res) => {
+    try {
+        if (req.isAuthenticated()) {
+            const foundUsers =  await User.find({"secret": {$ne: null}});
+            return res.render("secrets", {usersWithSecrets: foundUsers});
+        } else {
+            req.flash("error_msg", "Unauthorized user, please login/register.");
+            return res.redirect("/");
+        }
+    } catch (e) {
+        console.error(e);
+        return res.status(400).render("/login", { title: "Error 404", alert: "An error occurred, please try later.." });
     }
 });
 
@@ -130,64 +140,79 @@ app.get("/submit", function(req, res){
     if (req.isAuthenticated()){
         res.render("submit");
     } else {
-        res.redirect("/login");
+        req.flash("error_msg", "Unauthorized user, please login/register.");
+        res.redirect("/");
     }
 });
 
-app.post("/submit", function(req, res){
-    const submittedSecret = req.body.secret;
-    console.log(req.user.id);
+app.post("/submit", async (req, res) => {
+    try {
+        const submittedSecret = req.body.secret;
 
-    User.findById(req.user.id, function(err, foundUser){
-        if (err) {
-            console.log(err);
-        } else {
-            if (foundUser) {
-                // foundUser.secret = submittedSecret;
-                foundUser.secret.push(submittedSecret);
-                foundUser.save(function(){
-                    res.redirect("/secrets");
-                });
+        await User.findById(req.user.id, function(err, foundUser){
+            if (err) {
+                console.log(err);
+                req.flash("error_msg", "An error occurred, please try later..");
+                res.redirect("/submit");
+            } else {
+                if (foundUser) {
+                    // foundUser.secret = submittedSecret;
+                    foundUser.secret.push(submittedSecret);
+                    foundUser.save(function(){
+                        req.flash("success_msg", "Secret submitted successfully!");
+                        res.redirect("/secrets");
+                    });
+                }
             }
-        }
-    });
+        });
+    } catch (e) {
+        console.error(e);
+        return res.status(400).render("/submit", { title: "Error 404", alert: "An error occurred, please try later.." });
+    }
 });
 
 
 app.get("/logout", function(req, res){
     req.logout();
+    req.flash("success_msg", "Session closed successfully");
     res.redirect("/");
 });
 
-app.post("/register", function(req, res){
-    User.register({username: req.body.username}, req.body.password, function(err, user){
-        if (err) {
-            console.log(err);
-            res.redirect("/register");
-        } else {
-            passport.authenticate("local")(req, res, function(){
-                res.redirect("/secrets");
-            });
-        }
-    });
-
+app.post("/register", async (req, res) => {
+    try {
+        await User.register({username: req.body.username}, req.body.password, function(err, user){
+            if (err) {
+                console.log(err);
+                req.flash("error_msg", "Incorrect data!");
+                return res.redirect("/register");
+            } else {
+                req.flash("success_msg", "Account created successfully, please login!");
+                return res.redirect("/login");
+            }
+        });
+    } catch (e) {
+        console.error(e);
+        return res.status(400).render("/register", { title: "Error 404", alert: "An error occurred, please try later.." });
+    }
 });
 
-app.post("/login", function(req, res){
-    const user = new User({
-        username: req.body.username,
-        password: req.body.password
-    });
+app.post("/login", async (req, res) => {
+    try {
+        const username = req.body.username;
+        const userExist = await User.findOne({username: username});
 
-    req.login(user, function(err){
-        if (err){
-            console.log(err);
-        } else {
+        if (userExist) {
             passport.authenticate("local")(req, res, function(){
-                res.redirect("/secrets");
+                return res.redirect("/secrets");
             });
+        } else {
+            req.flash("error_msg", "Incorrect data or user does not exist!");
+            return res.redirect("/login");
         }
-    });
+    } catch (error) {
+        console.error(e);
+        return res.status(400).render("/login", { title: "Error 404", alert: "An error occurred, please try later.." });
+    }
 });
 
 // Server status

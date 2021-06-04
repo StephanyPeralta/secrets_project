@@ -28,3 +28,10 @@ i {
   background-color: transparent;
 }
 
+.btn {
+  margin-top: 15px;
+}
+
+.btn-block  {
+  margin: 0;
+}
