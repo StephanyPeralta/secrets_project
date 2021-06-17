@@ -6,6 +6,9 @@ body {
 i {
   color: #EBD82F;
 }
+.navbar {
+  margin-top: 15px;
+}
 
 .centered {
     padding-top: 200px;
@@ -20,8 +23,13 @@ i {
   background-color: #282929;
 }
 
-.mainContainer {
+.wrapper-container {
+  margin-top: 8vh;
+}
+
+.main-container {
   height: 100vh;
+  padding: 0 60px 70px;
 }
 
 .jumbotron {
