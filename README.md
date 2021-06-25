@@ -1,6 +1,6 @@
 # Secrets App
 
-This is a Node.js project where you can post your secrets anonymously, includes a Login and Register section using Passport and Bcrypt implementation.
+This is a Node.js project where you can post your secrets anonymously, includes a Login and Register section that was created using Passport and Bcrypt.
 
 ## Usage
 
