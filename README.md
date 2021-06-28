@@ -11,7 +11,7 @@ This is a Node.js project where you can post your secrets anonymously, includes 
 3. Once in the Secrets page, hit "Submit a Secret" button to post a new secret.
 4. Hit the "Log Out" button to close the session.
 
-## Tools
+## Tools & Technologies
 
 * EJS  
 * CSS
