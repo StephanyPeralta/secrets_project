@@ -13,6 +13,7 @@ This is a Node.js project where you can post your secrets anonymously, includes 
 
 ## Tools & Technologies
 
+* JavaScript
 * EJS  
 * CSS
 * Node.js
